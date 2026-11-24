@@ -102,6 +102,7 @@
 
     $("total-interest").textContent = eur.format(res.totalInterest);
     $("monthly").textContent = eur2.format(res.monthly);
+    $("principal").textContent = eur.format(principal);
     $("total-paid").textContent = eur.format(res.totalPaid);
     $("n-payments").textContent = res.n.toLocaleString("it-IT");
     $("interest-ratio").textContent = pct.format(res.totalInterest / principal);

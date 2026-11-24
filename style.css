@@ -6,7 +6,8 @@
   --border: #e2e7f0;
   --accent: #2f6fed;
   --accent-soft: #dbe6fd;
-  --interest: #f0803c;
+  --interest: #e0702c;
+  --interest-soft: #fde8da;
   --track: #e3e8f2;
   --shadow: 0 1px 2px rgba(20, 30, 60, 0.05), 0 8px 24px rgba(20, 30, 60, 0.06);
 }
@@ -21,6 +22,7 @@
     --accent: #5b8ff5;
     --accent-soft: #243353;
     --interest: #f39a5f;
+    --interest-soft: #3a2a22;
     --track: #2a3448;
     --shadow: none;
   }
@@ -182,13 +184,21 @@ input[type="number"] { -moz-appearance: textfield; }
   gap: 22px;
 }
 
+.highlights {
+  display: grid;
+  gap: 12px;
+}
+
 .highlight {
-  background: var(--accent-soft);
   border-radius: 12px;
-  padding: 18px 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
+
+.highlight-monthly { background: var(--accent-soft); }
+.highlight-interest { background: var(--interest-soft); }
 
 .label {
   font-size: 0.82rem;
@@ -198,12 +208,15 @@ input[type="number"] { -moz-appearance: textfield; }
 .highlight .label { color: var(--text); opacity: 0.8; }
 
 .big {
-  font-size: clamp(1.9rem, 5vw, 2.6rem);
+  font-size: clamp(1.7rem, 4vw, 2.3rem);
   font-weight: 750;
   letter-spacing: -0.02em;
-  color: var(--interest);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
+
+.highlight-monthly .big { color: var(--accent); }
+.highlight-interest .big { color: var(--interest); }
 
 .stats {
   display: grid;

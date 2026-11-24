@@ -3,7 +3,7 @@
 Calcolatore web di un mutuo con ammortamento alla francese (rata costante).
 
 - Importo, durata e tasso impostabili con le barre mobili **oppure** scrivendo il valore nella casella accanto.
-- Calcolo in tempo reale di interessi totali pagati alla banca, rata mensile, totale da restituire.
+- Calcolo in tempo reale di rata mensile, interessi totali pagati alla banca e totale da restituire.
 - Piano di ammortamento annuale.
 
 Sito statico (HTML/CSS/JS, nessuna dipendenza né build).
