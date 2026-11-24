@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calcolatore Mutuo</title>
-  <meta name="description" content="Calcola rata mensile, interessi totali e costo complessivo del tuo mutuo in tempo reale." />
+  <meta name="description" content="Calcola rata mensile, anticipo, interessi totali e costo complessivo del tuo mutuo in tempo reale." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -19,14 +19,50 @@
       <section class="card inputs" aria-label="Parametri del mutuo">
         <div class="field">
           <div class="field-head">
-            <label for="amount-range">Importo del mutuo</label>
+            <label for="house-range">Valore della casa</label>
             <div class="number-wrap">
-              <input id="amount-number" type="number" inputmode="numeric" min="1000" max="2000000" step="1000" aria-label="Importo del mutuo in euro" />
+              <input id="house-number" type="number" inputmode="numeric" min="50000" max="5000000" step="1000" aria-label="Valore della casa in euro" />
               <span class="unit">€</span>
             </div>
           </div>
-          <input id="amount-range" type="range" min="10000" max="1000000" step="1000" />
-          <div class="scale"><span>10.000 €</span><span>1.000.000 €</span></div>
+          <input id="house-range" type="range" min="50000" max="1500000" step="5000" />
+          <div class="scale"><span>50.000 €</span><span>1.500.000 €</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <label for="pct-range">Percentuale da finanziare</label>
+            <div class="number-wrap">
+              <input id="pct-number" type="number" inputmode="decimal" min="10" max="100" step="1" aria-label="Percentuale del valore della casa da finanziare" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <input id="pct-range" type="range" min="10" max="100" step="1" />
+          <div class="scale ticks" aria-hidden="true">
+            <span style="--f: 0">10%</span>
+            <span class="tick" style="--f: 0.4444">50%</span>
+            <span class="tick" style="--f: 0.5556">60%</span>
+            <span class="tick" style="--f: 0.7778">80%</span>
+            <span style="--f: 1">100%</span>
+          </div>
+          <div class="presets" role="group" aria-label="Soglie rapide">
+            <button type="button" class="preset" data-pct="50"><b>50%</b><small data-amount></small></button>
+            <button type="button" class="preset" data-pct="60"><b>60%</b><small data-amount></small></button>
+            <button type="button" class="preset" data-pct="80"><b>80%</b><small data-amount></small></button>
+          </div>
+          <p class="hint" id="pct-hint" hidden></p>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <label for="amount-range">Importo del mutuo</label>
+            <div class="number-wrap">
+              <input id="amount-number" type="number" inputmode="numeric" min="10000" max="500000" step="1000" aria-label="Importo del mutuo in euro" />
+              <span class="unit">€</span>
+            </div>
+          </div>
+          <input id="amount-range" type="range" min="10000" max="500000" step="1000" />
+          <div class="scale"><span>10.000 €</span><span>500.000 €</span></div>
         </div>
 
         <div class="field">
@@ -72,8 +108,16 @@
             <span id="principal" class="value">–</span>
           </div>
           <div class="stat">
+            <span class="label">Anticipo da versare</span>
+            <span id="down-payment" class="value">–</span>
+          </div>
+          <div class="stat">
             <span class="label">Totale da restituire</span>
             <span id="total-paid" class="value">–</span>
+          </div>
+          <div class="stat">
+            <span class="label">Costo totale della casa</span>
+            <span id="total-cost" class="value">–</span>
           </div>
           <div class="stat">
             <span class="label">Numero di rate</span>

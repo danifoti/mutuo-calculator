@@ -3,69 +3,93 @@
 
   const eur = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0, useGrouping: "always" });
   const eur2 = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: "always" });
-  const pct = new Intl.NumberFormat("it-IT", { style: "percent", maximumFractionDigits: 1 });
+  const pctFmt = new Intl.NumberFormat("it-IT", { style: "percent", maximumFractionDigits: 1 });
 
-  // Each parameter has a slider and a number box kept in sync.
-  // The number box accepts a wider range than the slider.
-  const params = {
-    amount: { value: 200000, min: 1000, max: 2000000 },
-    years: { value: 25, min: 1, max: 40 },
-    rate: { value: 3.5, min: 0, max: 20 },
+  // Limits accepted by the number boxes (sliders may have a narrower range).
+  const LIMITS = {
+    house: { min: 50000, max: 5000000 },
+    pct: { min: 10, max: 100 },
+    amount: { min: 10000, max: 500000 },
+    years: { min: 1, max: 40 },
+    rate: { min: 0, max: 20 },
   };
 
+  // `targetPct` is the share the user asked for. The loan amount follows it when
+  // the house value changes, but is capped at LIMITS.amount.max and at the house value.
+  const state = { house: 250000, targetPct: 80, amount: 200000, years: 25, rate: 3.5 };
+
   const $ = (id) => document.getElementById(id);
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const round1 = (v) => Math.round(v * 10) / 10;
+
+  const maxAmount = () => Math.min(LIMITS.amount.max, state.house);
+  const actualPct = () => (state.amount / state.house) * 100;
+
+  function amountFromPct() {
+    state.amount = Math.round(clamp((state.house * state.targetPct) / 100, LIMITS.amount.min, maxAmount()));
+  }
+
+  const setters = {
+    house(v) { state.house = v; amountFromPct(); },
+    pct(v) { state.targetPct = v; amountFromPct(); },
+    amount(v) {
+      state.amount = Math.round(clamp(v, LIMITS.amount.min, maxAmount()));
+      state.targetPct = actualPct();
+    },
+    years(v) { state.years = Math.round(v); },
+    rate(v) { state.rate = v; },
+  };
+
+  const getters = {
+    house: () => state.house,
+    pct: () => round1(actualPct()),
+    amount: () => state.amount,
+    years: () => state.years,
+    rate: () => state.rate,
+  };
+
+  const keys = Object.keys(LIMITS);
+  const controls = {};
 
   function setSliderFill(range) {
     const min = Number(range.min);
     const max = Number(range.max);
-    const v = Math.min(max, Math.max(min, Number(range.value)));
+    const v = clamp(Number(range.value), min, max);
     range.style.setProperty("--pct", ((v - min) / (max - min)) * 100 + "%");
   }
 
+  const parse = (s) => parseFloat(String(s).replace(",", "."));
+
   function bind(key) {
-    const p = params[key];
     const range = $(key + "-range");
     const number = $(key + "-number");
     const wrap = number.parentElement;
-
-    range.value = p.value;
-    number.value = p.value;
-    setSliderFill(range);
+    controls[key] = { range, number, wrap };
 
     range.addEventListener("input", () => {
-      p.value = Number(range.value);
-      number.value = p.value;
-      wrap.classList.remove("invalid");
-      setSliderFill(range);
-      update();
+      setters[key](Number(range.value));
+      render();
     });
 
+    // Live update while typing, only once the value is inside the allowed range.
     number.addEventListener("input", () => {
-      const raw = number.value.replace(",", ".");
-      const v = parseFloat(raw);
-      if (raw === "" || !Number.isFinite(v) || v < p.min || v > p.max) {
+      const v = parse(number.value);
+      const lim = LIMITS[key];
+      if (!Number.isFinite(v) || v < lim.min || v > lim.max) {
         wrap.classList.add("invalid");
         return;
       }
       wrap.classList.remove("invalid");
-      p.value = key === "years" ? Math.round(v) : v;
-      range.value = p.value;
-      setSliderFill(range);
-      update();
+      setters[key](v);
+      render(number);
     });
 
-    // On leaving the box, snap invalid input back into the allowed range.
+    // On leaving the box, snap the value back into range and show the real value.
     number.addEventListener("change", () => {
-      let v = parseFloat(number.value.replace(",", "."));
-      if (!Number.isFinite(v)) v = p.value;
-      v = Math.min(p.max, Math.max(p.min, v));
-      if (key === "years") v = Math.round(v);
-      p.value = v;
-      number.value = v;
-      range.value = v;
-      wrap.classList.remove("invalid");
-      setSliderFill(range);
-      update();
+      let v = parse(number.value);
+      if (!Number.isFinite(v)) v = getters[key]();
+      setters[key](clamp(v, LIMITS[key].min, LIMITS[key].max));
+      render();
     });
   }
 
@@ -74,7 +98,6 @@
     const r = annualRate / 100 / 12;
     const monthly = r === 0 ? principal / n : (principal * r) / (1 - Math.pow(1 + r, -n));
 
-    // Yearly amortization schedule
     const schedule = [];
     let balance = principal;
     for (let y = 1; y <= years; y++) {
@@ -94,28 +117,68 @@
     return { n, monthly, totalPaid, totalInterest: totalPaid - principal, schedule };
   }
 
-  function update() {
-    const principal = params.amount.value;
-    const years = params.years.value;
-    const rate = params.rate.value;
-    const res = compute(principal, years, rate);
+  function renderInputs(skip) {
+    keys.forEach((key) => {
+      const { range, number, wrap } = controls[key];
+      const v = getters[key]();
+      range.value = v;
+      setSliderFill(range);
+      if (number !== skip) {
+        number.value = v;
+        wrap.classList.remove("invalid");
+      }
+    });
 
-    $("total-interest").textContent = eur.format(res.totalInterest);
+    const pctNow = actualPct();
+    document.querySelectorAll(".preset").forEach((btn) => {
+      const p = Number(btn.dataset.pct);
+      const wanted = (state.house * p) / 100;
+      btn.querySelector("[data-amount]").textContent = eur.format(wanted);
+      btn.disabled = wanted > LIMITS.amount.max;
+      btn.title = btn.disabled ? "Supera l'importo massimo di " + eur.format(LIMITS.amount.max) : "";
+      const active = Math.abs(pctNow - p) < 0.05;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    });
+
+    const hint = $("pct-hint");
+    const wantedAmount = (state.house * state.targetPct) / 100;
+    if (wantedAmount > LIMITS.amount.max + 0.5) {
+      hint.textContent =
+        "Importo limitato al massimo di " + eur.format(LIMITS.amount.max) +
+        " (" + pctFmt.format(state.amount / state.house) + " del valore della casa).";
+      hint.hidden = false;
+    } else if (wantedAmount < LIMITS.amount.min - 0.5) {
+      hint.textContent = "Importo minimo del mutuo: " + eur.format(LIMITS.amount.min) + ".";
+      hint.hidden = false;
+    } else {
+      hint.hidden = true;
+    }
+  }
+
+  function renderResults() {
+    const principal = state.amount;
+    const res = compute(principal, state.years, state.rate);
+    const downPayment = state.house - principal;
+
     $("monthly").textContent = eur2.format(res.monthly);
+    $("total-interest").textContent = eur.format(res.totalInterest);
     $("principal").textContent = eur.format(principal);
+    $("down-payment").textContent = eur.format(downPayment);
     $("total-paid").textContent = eur.format(res.totalPaid);
+    $("total-cost").textContent = eur.format(downPayment + res.totalPaid);
     $("n-payments").textContent = res.n.toLocaleString("it-IT");
-    $("interest-ratio").textContent = pct.format(res.totalInterest / principal);
+    $("interest-ratio").textContent = pctFmt.format(res.totalInterest / principal);
 
     const pPrincipal = principal / res.totalPaid;
     const pInterest = 1 - pPrincipal;
     $("seg-principal").style.width = pPrincipal * 100 + "%";
     $("seg-interest").style.width = pInterest * 100 + "%";
-    $("pct-principal").textContent = pct.format(pPrincipal);
-    $("pct-interest").textContent = pct.format(pInterest);
+    $("pct-principal").textContent = pctFmt.format(pPrincipal);
+    $("pct-interest").textContent = pctFmt.format(pInterest);
     $("split-bar").setAttribute(
       "aria-label",
-      "Capitale " + pct.format(pPrincipal) + ", interessi " + pct.format(pInterest)
+      "Capitale " + pctFmt.format(pPrincipal) + ", interessi " + pctFmt.format(pInterest)
     );
 
     $("schedule-body").innerHTML = res.schedule
@@ -127,6 +190,19 @@
       .join("");
   }
 
-  Object.keys(params).forEach(bind);
-  update();
+  function render(skip) {
+    renderInputs(skip);
+    renderResults();
+  }
+
+  keys.forEach(bind);
+
+  document.querySelectorAll(".preset").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setters.pct(Number(btn.dataset.pct));
+      render();
+    });
+  });
+
+  render();
 })();

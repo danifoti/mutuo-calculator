@@ -172,6 +172,92 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
   box-shadow: 0 0 0 5px var(--accent-soft);
 }
 
+/* Threshold ticks under the financing slider (22px thumb) */
+.ticks {
+  position: relative;
+  height: 1.3em;
+}
+
+.ticks span {
+  position: absolute;
+  left: calc(11px + (100% - 22px) * var(--f));
+  transform: translateX(-50%);
+}
+
+.ticks span:first-child { left: 0; transform: none; }
+.ticks span:last-child { left: auto; right: 0; transform: none; }
+
+.ticks .tick::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  width: 2px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--muted);
+  opacity: 0.6;
+  transform: translateX(-50%);
+}
+
+/* Quick threshold buttons */
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.preset b { font-size: 1rem; }
+
+.preset small {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.preset:hover:not(:disabled) { border-color: var(--accent); }
+
+.preset:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.preset.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.preset.active small { color: rgba(255, 255, 255, 0.85); }
+
+.preset:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: var(--interest);
+}
+
 /* Hide number spinners */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
