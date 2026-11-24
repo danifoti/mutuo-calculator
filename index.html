@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calcolatore Mutuo</title>
+  <meta name="description" content="Calcola rata mensile, interessi totali e costo complessivo del tuo mutuo in tempo reale." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>Calcolatore Mutuo</h1>
+      <p class="subtitle">Muovi le barre o scrivi i valori: il calcolo si aggiorna in tempo reale.</p>
+    </header>
+
+    <div class="layout">
+      <section class="card inputs" aria-label="Parametri del mutuo">
+        <div class="field">
+          <div class="field-head">
+            <label for="amount-range">Importo del mutuo</label>
+            <div class="number-wrap">
+              <input id="amount-number" type="number" inputmode="numeric" min="1000" max="2000000" step="1000" aria-label="Importo del mutuo in euro" />
+              <span class="unit">€</span>
+            </div>
+          </div>
+          <input id="amount-range" type="range" min="10000" max="1000000" step="1000" />
+          <div class="scale"><span>10.000 €</span><span>1.000.000 €</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <label for="years-range">Durata</label>
+            <div class="number-wrap">
+              <input id="years-number" type="number" inputmode="numeric" min="1" max="40" step="1" aria-label="Durata in anni" />
+              <span class="unit">anni</span>
+            </div>
+          </div>
+          <input id="years-range" type="range" min="1" max="40" step="1" />
+          <div class="scale"><span>1 anno</span><span>40 anni</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <label for="rate-range">Tasso di interesse annuo (TAN)</label>
+            <div class="number-wrap">
+              <input id="rate-number" type="number" inputmode="decimal" min="0" max="20" step="0.01" aria-label="Tasso di interesse annuo in percentuale" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <input id="rate-range" type="range" min="0" max="10" step="0.05" />
+          <div class="scale"><span>0%</span><span>10%</span></div>
+        </div>
+      </section>
+
+      <section class="card results" aria-live="polite" aria-label="Risultati">
+        <div class="highlight">
+          <span class="label">Interessi totali pagati alla banca</span>
+          <span id="total-interest" class="big">–</span>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <span class="label">Rata mensile</span>
+            <span id="monthly" class="value">–</span>
+          </div>
+          <div class="stat">
+            <span class="label">Totale da restituire</span>
+            <span id="total-paid" class="value">–</span>
+          </div>
+          <div class="stat">
+            <span class="label">Numero di rate</span>
+            <span id="n-payments" class="value">–</span>
+          </div>
+          <div class="stat">
+            <span class="label">Interessi su capitale</span>
+            <span id="interest-ratio" class="value">–</span>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="split-bar" role="img" id="split-bar" aria-label="Ripartizione tra capitale e interessi">
+            <div class="seg seg-principal" id="seg-principal"></div>
+            <div class="seg seg-interest" id="seg-interest"></div>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-principal"></i>Capitale <b id="pct-principal">–</b></span>
+            <span><i class="dot dot-interest"></i>Interessi <b id="pct-interest">–</b></span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card schedule">
+      <details>
+        <summary>Piano di ammortamento annuale</summary>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Anno</th>
+                <th>Quota capitale</th>
+                <th>Quota interessi</th>
+                <th>Debito residuo</th>
+              </tr>
+            </thead>
+            <tbody id="schedule-body"></tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <footer class="footer">
+      Calcolo con ammortamento alla francese (rata costante). Valori indicativi: non includono spese, imposte, assicurazioni o variazioni del tasso.
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
